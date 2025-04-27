@@ -199,7 +199,8 @@ package ariane_pkg;
     FPU,        // 7
     FPU_VEC,    // 8
     CVXIF,      // 9
-    ACCEL       // 10
+    ACCEL,       // 10
+    AES
   } fu_t;
 
   localparam EXC_OFF_RST = 8'h80;
@@ -482,7 +483,15 @@ package ariane_pkg;
     ACCEL_OP_STORE,
     // Zicond instruction
     CZERO_EQZ,
-    CZERO_NEZ
+    CZERO_NEZ,
+    // Custom AES instructions
+    AES_LOAD_KEYH,
+    AES_LOAD_KEYL,
+    AES_LOAD_DATAH,
+    AES_LOAD_DATAL,
+    AES_START_ENC,
+    AES_READ_HIGH,
+    AES_READ_LOW
   } fu_op;
 
   function automatic logic op_is_branch(input fu_op op);

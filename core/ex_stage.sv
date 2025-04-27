@@ -257,9 +257,9 @@ module ex_stage
 
   // from ALU to branch unit
   logic alu_branch_res;  // branch comparison result
-  logic [CVA6Cfg.XLEN-1:0] alu_result, csr_result, mult_result;
+  logic [CVA6Cfg.XLEN-1:0] alu_result, csr_result, mult_result, aes_result;
   logic [CVA6Cfg.VLEN-1:0] branch_result;
-  logic csr_ready, mult_ready;
+  logic csr_ready, mult_ready, aes_ready;
   logic [CVA6Cfg.TRANS_ID_BITS-1:0] mult_trans_id;
   logic mult_valid;
 
@@ -348,12 +348,14 @@ module ex_stage
     end else if (mult_valid) begin
       flu_result_o   = mult_result;
       flu_trans_id_o = mult_trans_id;
+    end else if (one_cycle_data.fu == AES) begin
+      flu_result_o = aes_result;
     end
   end
 
   // ready flags for FLU
   always_comb begin
-    flu_ready_o = csr_ready & mult_ready;
+    flu_ready_o = csr_ready & mult_ready & aes_ready;
   end
 
   // 4. Multiplication (Sequential)
@@ -381,6 +383,18 @@ module ex_stage
       .mult_valid_o   (mult_valid),
       .mult_ready_o   (mult_ready),
       .mult_trans_id_o(mult_trans_id)
+  );
+
+   // AES 
+  aes #(
+    .CVA6Cfg  (CVA6Cfg),
+    .fu_data_t(fu_data_t)
+  )i_aes_unit (
+    .clk_i      (clk_i),
+    .rst_ni     (rst_ni),
+    .fu_data_i  (one_cycle_data),
+    .result_o   (aes_result),
+    .ready_o    (aes_ready)
   );
 
   // ----------------
