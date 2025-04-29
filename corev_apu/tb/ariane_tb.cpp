@@ -132,7 +132,7 @@ int main(int argc, char **argv) {
   bool verbose;
   bool perf;
   unsigned random_seed = (unsigned)time(NULL) ^ (unsigned)getpid();
-  uint64_t max_cycles = -1;
+  uint64_t max_cycles = 10000;
   int ret = 0;
   bool print_cycles = false;
   // Port numbers are 16 bit unsigned integers.

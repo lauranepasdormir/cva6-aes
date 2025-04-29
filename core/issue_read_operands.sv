@@ -88,6 +88,8 @@ module issue_read_operands
     output logic [SUPERSCALAR:0] lsu_valid_o,
     // Mult result is valid - TO_BE_COMPLETED
     output logic [SUPERSCALAR:0] mult_valid_o,
+    // AES result is valid - To_BE_COMPLETED
+    output logic [SUPERSCALAR:0] aes_valid_o,
     // FPU is ready - TO_BE_COMPLETED
     input logic fpu_ready_i,
     // FPU result is valid - TO_BE_COMPLETED
@@ -120,7 +122,7 @@ module issue_read_operands
   localparam OPERANDS_PER_INSTR = CVA6Cfg.NrRgprPorts >> SUPERSCALAR;
 
   typedef struct packed {
-    logic none, load, store, alu, ctrl_flow, mult, csr, fpu, fpu_vec, cvxif, accel;
+    logic none, load, store, alu, ctrl_flow, mult, csr, fpu, fpu_vec, cvxif, accel, aes;
   } fus_busy_t;
 
   logic [SUPERSCALAR:0] stall;
@@ -137,6 +139,7 @@ module issue_read_operands
 
   logic [   SUPERSCALAR:0] alu_valid_q;
   logic [   SUPERSCALAR:0] mult_valid_q;
+  logic [   SUPERSCALAR:0] aes_valid_q;
   logic [   SUPERSCALAR:0] fpu_valid_q;
   logic [             1:0] fpu_fmt_q;
   logic [             2:0] fpu_rm_q;
@@ -168,6 +171,7 @@ module issue_read_operands
   assign lsu_valid_o = lsu_valid_q;
   assign csr_valid_o = csr_valid_q;
   assign mult_valid_o = mult_valid_q;
+  assign aes_valid_o = aes_valid_q;
   assign fpu_valid_o = fpu_valid_q;
   assign fpu_fmt_o = fpu_fmt_q;
   assign fpu_rm_o = fpu_rm_q;
@@ -187,6 +191,7 @@ module issue_read_operands
       fus_busy[0].ctrl_flow = 1'b1;
       fus_busy[0].csr = 1'b1;
       fus_busy[0].mult = 1'b1;
+      fus_busy[0].aes = 1'b1;
     end
 
     // after a multiplication was issued we can only issue another multiplication
@@ -242,6 +247,7 @@ module issue_read_operands
           fus_busy[1].store = 1'b1;
         end
         CVXIF: fus_busy[1].cvxif = 1'b1;
+        AES: fus_busy[1].aes = 1'b1;
       endcase
     end
   end
@@ -261,6 +267,7 @@ module issue_read_operands
         LOAD: fu_busy[i] = fus_busy[i].load;
         STORE: fu_busy[i] = fus_busy[i].store;
         CVXIF: fu_busy[i] = fus_busy[i].cvxif;
+        AES: fu_busy[i] = fus_busy[i].aes;
         default: fu_busy[i] = 1'b0;
       endcase
     end
@@ -436,6 +443,7 @@ module issue_read_operands
       alu_valid_q    <= '0;
       lsu_valid_q    <= '0;
       mult_valid_q   <= '0;
+      aes_valid_q    <= '0;
       fpu_valid_q    <= '0;
       fpu_fmt_q      <= '0;
       fpu_rm_q       <= '0;
@@ -445,6 +453,7 @@ module issue_read_operands
       alu_valid_q    <= '0;
       lsu_valid_q    <= '0;
       mult_valid_q   <= '0;
+      aes_valid_q    <= '0;
       fpu_valid_q    <= '0;
       fpu_fmt_q      <= '0;
       fpu_rm_q       <= '0;
@@ -464,6 +473,9 @@ module issue_read_operands
             end
             MULT: begin
               mult_valid_q[i] <= 1'b1;
+            end
+            AES: begin
+              aes_valid_q[i] <= 1'b1;
             end
             LOAD, STORE: begin
               lsu_valid_q[i] <= 1'b1;
@@ -494,6 +506,7 @@ module issue_read_operands
         fpu_valid_q    <= '0;
         csr_valid_q    <= '0;
         branch_valid_q <= '0;
+        aes_valid_q    <= '0;
       end
     end
   end

@@ -78,6 +78,8 @@ module ex_stage
     input logic csr_commit_i,
     // MULT instruction is valid - ISSUE_STAGE
     input logic [SUPERSCALAR:0] mult_valid_i,
+    // MULT instruction is valid - ISSUE_STAGE
+    input logic [SUPERSCALAR:0] aes_valid_i,
     // LSU is ready - ISSUE_STAGE
     output logic lsu_ready_o,
     // LSU instruction is valid - ISSUE_STAGE
@@ -243,6 +245,7 @@ module ex_stage
   //                        output port. Divisions are arbitrary in length
   //                        they will simply block the issue of all other
   //                        instructions.
+  // 5. AES: 
 
 
   logic current_instruction_is_sfence_vma;
@@ -264,7 +267,7 @@ module ex_stage
   logic mult_valid;
 
   logic [SUPERSCALAR:0] one_cycle_select;
-  assign one_cycle_select = alu_valid_i | branch_valid_i | csr_valid_i;
+  assign one_cycle_select = alu_valid_i | branch_valid_i | csr_valid_i | aes_valid_i;
 
   fu_data_t one_cycle_data;
   always_comb begin
@@ -332,6 +335,18 @@ module ex_stage
       .csr_addr_o
   );
 
+  // AES 
+  aes #(
+    .CVA6Cfg  (CVA6Cfg),
+    .fu_data_t(fu_data_t)
+  )i_aes (
+    .clk_i      (clk_i),
+    .rst_ni     (rst_ni),
+    .fu_data_i  (one_cycle_data),
+    .result_o   (aes_result),
+    .ready_o    (aes_ready)
+  );
+
   assign flu_valid_o = |one_cycle_select | mult_valid;
 
   // result MUX
@@ -348,7 +363,7 @@ module ex_stage
     end else if (mult_valid) begin
       flu_result_o   = mult_result;
       flu_trans_id_o = mult_trans_id;
-    end else if (one_cycle_data.fu == AES) begin
+    end else if (aes_valid_i) begin
       flu_result_o = aes_result;
     end
   end
@@ -383,18 +398,6 @@ module ex_stage
       .mult_valid_o   (mult_valid),
       .mult_ready_o   (mult_ready),
       .mult_trans_id_o(mult_trans_id)
-  );
-
-   // AES 
-  aes #(
-    .CVA6Cfg  (CVA6Cfg),
-    .fu_data_t(fu_data_t)
-  )i_aes_unit (
-    .clk_i      (clk_i),
-    .rst_ni     (rst_ni),
-    .fu_data_i  (one_cycle_data),
-    .result_o   (aes_result),
-    .ready_o    (aes_ready)
   );
 
   // ----------------

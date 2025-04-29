@@ -74,6 +74,8 @@ module issue_stage
     output branchpredict_sbe_t branch_predict_o,
     // Mult FU is valid - EX_STAGE
     output logic [SUPERSCALAR:0] mult_valid_o,
+    // AES FU is valid - EX_STAGE
+    output logic [SUPERSCALAR:0] aes_valid_o,
     // FPU FU is ready - EX_STAGE
     input logic fpu_ready_i,
     // FPU FU is valid - EX_STAGE
@@ -235,6 +237,7 @@ module issue_stage
       .cvxif_ready_i      (x_issue_ready_i),
       .cvxif_off_instr_o  (x_off_instr_o),
       .mult_valid_o       (mult_valid_o),
+      .aes_valid_o        (aes_valid_o),
       .rs1_forwarding_o   (rs1_forwarding_xlen),
       .rs2_forwarding_o   (rs2_forwarding_xlen),
       .stall_issue_o      (stall_issue_o),

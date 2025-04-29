@@ -405,6 +405,8 @@ module cva6
   exception_t store_exception_ex_id;
   // MULT
   logic [SUPERSCALAR:0] mult_valid_id_ex;
+  // AES
+  logic [SUPERSCALAR:0] aes_valid_id_ex;
   // FPU
   logic fpu_ready_ex_id;
   logic [SUPERSCALAR:0] fpu_valid_id_ex;
@@ -770,6 +772,8 @@ module cva6
       .lsu_valid_o           (lsu_valid_id_ex),
       // Multiplier
       .mult_valid_o          (mult_valid_id_ex),
+      // AES
+      .aes_valid_o           (aes_valid_id_ex),
       // FPU
       .fpu_ready_i           (fpu_ready_ex_id),
       .fpu_valid_o           (fpu_valid_id_ex),
@@ -853,6 +857,8 @@ module cva6
       .csr_hs_ld_st_inst_o(csr_hs_ld_st_inst_ex),  // signals a Hypervisor Load/Store Instruction
       // MULT
       .mult_valid_i(mult_valid_id_ex),
+      // AES
+      .aes_valid_i(aes_valid_id_ex),
       // LSU
       .lsu_ready_o(lsu_ready_ex_id),
       .lsu_valid_i(lsu_valid_id_ex),

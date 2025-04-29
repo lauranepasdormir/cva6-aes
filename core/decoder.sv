@@ -1418,35 +1418,29 @@ module decoder
         end
 
         riscv::OpcodeCustom3: begin
+          $display("OpcodeCustom3 - AES");
           instruction_o.fu = AES;
-          instruction_o.rs1 = instr.rtype.rs1;
-          instruction_o.rs2 = instr.rtype.rs2;
-          instruction_o.rd  = instr.rtype.rd;
-          $display("AES DECODE: rd = %0d, op = %0d", instruction_o.rd, instruction_o.op);
-
+          instruction_o.rs1[4:0] = instr.rtype.rs1;
+          instruction_o.rs2[4:0] = instr.rtype.rs2;
+          instruction_o.rd[4:0]  = instr.rtype.rd;
+          
           unique case ({instr.rtype.funct7, instr.rtype.funct3})
-            {7'b0000011, 3'b000}: begin // aes_load_keyh
-              instruction_o.op = ariane_pkg::AES_LOAD_KEYH;
+            {7'b0000011, 3'b000}: begin // aes_load_key
+              instruction_o.op = ariane_pkg::AES_LOAD_KEY;
             end
-            {7'b0000011, 3'b001}: begin // aes_load_keyl
-                instruction_o.op = ariane_pkg::AES_LOAD_KEYL;
+            {7'b0000011, 3'b001}: begin // aes_load_data
+              instruction_o.op = ariane_pkg::AES_LOAD_DATA;
             end
-            {7'b0000011, 3'b010}: begin // aes_load_datah
-                instruction_o.op = ariane_pkg::AES_LOAD_DATAH;
+            {7'b0000011, 3'b010}: begin // aes_read_high
+              instruction_o.op = ariane_pkg::AES_READ_HIGH;
             end
-            {7'b0000011, 3'b011}: begin // aes_load_datal
-                instruction_o.op = ariane_pkg::AES_LOAD_DATAL;
+            {7'b0000011, 3'b011}: begin // aes_read_low
+              instruction_o.op = ariane_pkg::AES_READ_LOW;
             end
             {7'b0000001, 3'b000}: begin // aes_start
-                instruction_o.op = ariane_pkg::AES_START_ENC;
+              instruction_o.op = ariane_pkg::AES_START_ENC;
             end
-            {7'b0000011, 3'b101}: begin // aes_read_high
-                instruction_o.op = ariane_pkg::AES_READ_HIGH;
-            end
-            {7'b0000011, 3'b110}: begin // aes_read_low
-                instruction_o.op = ariane_pkg::AES_READ_LOW;
-            end
-            default: illegal_instr = 1'b1;
+            default: illegal_instr_bm = 1'b1;
           endcase
 
         end

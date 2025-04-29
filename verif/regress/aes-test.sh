@@ -18,16 +18,21 @@ source ./verif/sim/setup-env.sh
 export DV_OPTS="$DV_OPTS --issrun_opts=+debug_disable=1+UVM_VERBOSITY=UVM_NONE"
 
 # Set gcc options
-export CC_OPTS="-static -mcmodel=medany -fvisibility=hidden -nostdlib -nostartfiles -g ../tests/custom/common/syscalls.c ../tests/custom/common/crt.S -I../tests/custom/env -I../tests/custom/common -lgcc"
+export CC_OPTS="-static -mcmodel=medany -fvisibility=hidden -nostdlib -nostartfiles -g ../tests/custom/common/syscalls.c ../tests/custom/common/crt.S -I../tests/custom/env -I../tests/custom/common"
 export TRACE_FAST=1
 
 # Move to the simulation directory
 cd verif/sim/
-make -C ../.. clean
-make clean_all
+# make -C ../.. clean
+# make clean_all
 
 # Run AES test
-python3 cva6.py --asm_tests /home/laura/elec4713/cva6/verif/tests/custom/aes/aes.S --iss_yaml cva6.yaml --target cv64a6_imafdc_sv39 --iss=$DV_SIMULATORS --gcc_opts="$CC_OPTS -T ../tests/custom/common/test.ld" $DV_OPTS
+# python3 cva6.py --asm_tests /home/laura/cva6/verif/tests/custom/aes/aes.S --iss_yaml cva6.yaml --target cv64a6_imafdc_sv39 --iss=$DV_SIMULATORS --gcc_opts="$CC_OPTS -T ../tests/custom/common/test.ld" $DV_OPTS
+
+
+# TEST - aes_load_keyh
+python3 cva6.py --asm_tests /home/laura/cva6/verif/tests/custom/aes/aes_load_test.S --iss_yaml cva6.yaml --target cv64a6_imafdc_sv39 --iss=$DV_SIMULATORS --gcc_opts="$CC_OPTS -T ../tests/custom/common/test.ld" $DV_OPTS
+
 
 # Move back
 cd -

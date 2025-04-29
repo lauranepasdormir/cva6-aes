@@ -200,7 +200,7 @@ package ariane_pkg;
     FPU_VEC,    // 8
     CVXIF,      // 9
     ACCEL,       // 10
-    AES
+    AES         // 11
   } fu_t;
 
   localparam EXC_OFF_RST = 8'h80;
@@ -485,10 +485,8 @@ package ariane_pkg;
     CZERO_EQZ,
     CZERO_NEZ,
     // Custom AES instructions
-    AES_LOAD_KEYH,
-    AES_LOAD_KEYL,
-    AES_LOAD_DATAH,
-    AES_LOAD_DATAL,
+    AES_LOAD_KEY,
+    AES_LOAD_DATA,
     AES_START_ENC,
     AES_READ_HIGH,
     AES_READ_LOW
