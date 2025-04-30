@@ -23,8 +23,8 @@ export TRACE_FAST=1
 
 # Move to the simulation directory
 cd verif/sim/
-# make -C ../.. clean
-# make clean_all
+make -C ../.. clean
+make clean_all
 
 # Run AES test
 # python3 cva6.py --asm_tests /home/laura/cva6/verif/tests/custom/aes/aes.S --iss_yaml cva6.yaml --target cv64a6_imafdc_sv39 --iss=$DV_SIMULATORS --gcc_opts="$CC_OPTS -T ../tests/custom/common/test.ld" $DV_OPTS

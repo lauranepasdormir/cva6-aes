@@ -7,21 +7,25 @@ module aes
     input  logic clk_i,
     input  logic rst_ni,
 
-    input  fu_data_t fu_data_i,            // 输入指令包，包括 operation/operand_a/operand_b
-    output logic [CVA6Cfg.XLEN-1:0] result_o, // 输出，暂时没用
-    output logic ready_o                    // Ready信号
+    input  fu_data_t fu_data_i,        
+    input logic aes_valid_i,
+    output logic [CVA6Cfg.XLEN-1:0] result_o,
+    output logic ready_o,                    
+    output logic [CVA6Cfg.TRANS_ID_BITS-1:0] aes_trans_id_o,
+    output logic aes_valid_o
 );
 
-// 内部寄存器
+
 logic [127:0] key_reg;
 logic [127:0] data_reg;
 logic [127:0] cipher_reg;
 logic start_enc;
 logic done_enc;
 
-// logic [63:0] read_data_q;
 logic read_high;
 logic read_low;
+
+logic [CVA6Cfg.XLEN-1:0] result_buffer;
 
 logic [127:0] ciphertext;
 aes_enc #(
@@ -38,12 +42,16 @@ aes_enc #(
 );
 
 assign start_enc = (fu_data_i.operation == AES_START_ENC);
+assign aes_trans_id_o = fu_data_i.trans_id;
 
 logic busy;
 always_ff @(posedge clk_i) begin
     if (start_enc) busy <= 1'b1;
     else if (done_enc) busy <= 1'b0;
 end
+
+assign ready_o = ~busy;
+assign result_o = result_buffer;
 
 // -----------------------------
 // Sequential logic
@@ -58,7 +66,12 @@ always_ff @(posedge clk_i or negedge rst_ni) begin
     end else begin
         if (done_enc) begin
             cipher_reg <= ciphertext;
-        end    
+        end 
+
+        if (aes_valid_i && (fu_data_i.operation inside { AES_READ_HIGH, AES_READ_LOW})) begin
+            aes_valid_o <= aes_valid_i;
+        end
+       
         unique case (fu_data_i.operation)
             AES_LOAD_KEY: begin
                 key_reg[127:64] <= fu_data_i.operand_a; 
@@ -70,11 +83,11 @@ always_ff @(posedge clk_i or negedge rst_ni) begin
             end
             AES_READ_HIGH: begin
                 read_high <= 1'b1;
-                result_o <= cipher_reg[127:64];
+                // result_o <= cipher_reg[127:64];
             end
             AES_READ_LOW: begin
                 read_low <= 1'b1;
-                result_o <= cipher_reg[63:0];
+                // result_o <= cipher_reg[63:0];
             end
             default: begin
                 // Do nothing
@@ -83,7 +96,13 @@ always_ff @(posedge clk_i or negedge rst_ni) begin
     end
 end
 
-assign ready_o = ~busy;
+// result mux
+always_comb begin
+    case (fu_data_i.operation)
+        AES_READ_HIGH: result_buffer = cipher_reg[127:64];
+        AES_READ_LOW:  result_buffer = cipher_reg[63:0];
+        default:       result_buffer = '0;
+    endcase
+end
 
 endmodule
-

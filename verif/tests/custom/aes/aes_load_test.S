@@ -11,10 +11,9 @@ main:
     aes_enc x0, x0, x0;
 
     aes_read_high a0, x0, x0;
+
     aes_read_low a1, x0, x0; 
 
-    nop;
-    nop;
-    nop;
+     li a0, 0x0;
 
     jal exit;         

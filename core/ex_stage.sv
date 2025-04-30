@@ -264,7 +264,9 @@ module ex_stage
   logic [CVA6Cfg.VLEN-1:0] branch_result;
   logic csr_ready, mult_ready, aes_ready;
   logic [CVA6Cfg.TRANS_ID_BITS-1:0] mult_trans_id;
+  logic [CVA6Cfg.TRANS_ID_BITS-1:0] aes_trans_id;
   logic mult_valid;
+  logic aes_valid;
 
   logic [SUPERSCALAR:0] one_cycle_select;
   assign one_cycle_select = alu_valid_i | branch_valid_i | csr_valid_i | aes_valid_i;
@@ -335,6 +337,17 @@ module ex_stage
       .csr_addr_o
   );
 
+   fu_data_t aes_data;
+  // input silencing of multiplier
+  always_comb begin
+    aes_data = aes_valid_i[0] ? fu_data_i[0] : '0;
+    if (SUPERSCALAR) begin
+      if (aes_valid_i[1]) begin
+        aes_data = fu_data_i[1];
+      end
+    end
+  end
+
   // AES 
   aes #(
     .CVA6Cfg  (CVA6Cfg),
@@ -342,9 +355,12 @@ module ex_stage
   )i_aes (
     .clk_i      (clk_i),
     .rst_ni     (rst_ni),
-    .fu_data_i  (one_cycle_data),
+    .fu_data_i  (aes_data),
+    .aes_valid_i (|aes_valid_i),
     .result_o   (aes_result),
-    .ready_o    (aes_ready)
+    .ready_o    (aes_ready),
+    .aes_trans_id_o(aes_trans_id),
+    .aes_valid_o (aes_valid)
   );
 
   assign flu_valid_o = |one_cycle_select | mult_valid;
@@ -363,8 +379,9 @@ module ex_stage
     end else if (mult_valid) begin
       flu_result_o   = mult_result;
       flu_trans_id_o = mult_trans_id;
-    end else if (aes_valid_i) begin
+    end else if (|aes_valid_i) begin
       flu_result_o = aes_result;
+      flu_trans_id_o = aes_trans_id;
     end
   end
 
@@ -372,6 +389,7 @@ module ex_stage
   always_comb begin
     flu_ready_o = csr_ready & mult_ready & aes_ready;
   end
+
 
   // 4. Multiplication (Sequential)
   fu_data_t mult_data;
