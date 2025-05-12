@@ -1440,6 +1440,9 @@ module decoder
             {7'b0000001, 3'b000}: begin // aes_start
               instruction_o.op = ariane_pkg::AES_START_ENC;
             end
+            {7'b0000001, 3'b001}: begin // aes_round
+              instruction_o.op = ariane_pkg::AES_ROUND;
+            end
             default: illegal_instr_bm = 1'b1;
           endcase
 

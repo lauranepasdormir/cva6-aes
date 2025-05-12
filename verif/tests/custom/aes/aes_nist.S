@@ -1,14 +1,20 @@
   .global main
 main:
-    li t1, 0x0011223344556677;
-    li t2, 0x8899aabbccddeeff;
+    li t1, 0x0001020304050607;
+    li t2, 0x08090a0b0c0d0e0f;
     aes_load_key a1, t1, t2;
 
-    li t1, 0x6bc1bee22e409f96;
-    li t2, 0xe93d7e117393172a;
+    li t1, 0x0011223344556677;
+    li t2, 0x8899aabbccddeeff;
     aes_load_data a2, t1, t2;
 
     aes_enc x0, x0, x0;
+
+    nop;
+    nop;
+    nop;
+    nop;
+    
 
     aes_read_high s0, x0, x0;
 
@@ -16,4 +22,4 @@ main:
 
     li a0, 0x0;
 
-    jal exit;         
+    jal exit;     

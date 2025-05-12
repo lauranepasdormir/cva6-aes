@@ -488,6 +488,7 @@ package ariane_pkg;
     AES_LOAD_KEY,
     AES_LOAD_DATA,
     AES_START_ENC,
+    AES_ROUND,
     AES_READ_HIGH,
     AES_READ_LOW
   } fu_op;

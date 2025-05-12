@@ -122,6 +122,7 @@ ${CVA6_REPO_DIR}/core/mult.sv
 ${CVA6_REPO_DIR}/core/multiplier.sv
 ${CVA6_REPO_DIR}/core/aes.sv
 ${CVA6_REPO_DIR}/core/aes_enc.sv
+${CVA6_REPO_DIR}/core/aes_round.sv
 ${CVA6_REPO_DIR}/core/serdiv.sv
 ${CVA6_REPO_DIR}/core/perf_counters.sv
 ${CVA6_REPO_DIR}/core/ariane_regfile_ff.sv

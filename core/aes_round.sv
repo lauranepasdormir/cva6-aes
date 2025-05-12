@@ -1,4 +1,4 @@
-module aes_enc   
+module aes_round   
     import ariane_pkg::*;
 #(
     parameter config_pkg::cva6_cfg_t CVA6Cfg = config_pkg::cva6_cfg_empty,
@@ -7,18 +7,21 @@ module aes_enc
     input  logic clk_i,
     input  logic rst_ni,
     input  logic start_i,
+    input  logic is_first_round_i,
+    input  logic is_final_round_i,
     input  logic [127:0] key_i,
-    input  logic [127:0] plaintext_i,
+    input  logic [3:0] round_i,
+    input  logic [127:0] state_i,
     output logic done_o,
-    output logic [127:0] ciphertext_o
+    output logic [127:0] state_o
 );
 
-  logic [127:0] state;
+//   logic [127:0] state;
   logic [127:0] round_keys[0:10];
-  logic [3:0] round;
+//   logic [3:0] round;
 
-  typedef enum logic [1:0] { IDLE, ROUND, DONE } aes_state_e;
-  aes_state_e aes_state, aes_state_next;
+  typedef enum logic [1:0] { IDLE, BUSY, DONE } state_e;
+  state_e state, state_next;
 
   // S-Box lookup table
   function automatic logic [7:0] sbox(input logic [7:0] input_byte);
@@ -174,52 +177,41 @@ module aes_enc
     return state_in ^ round_key;
   endfunction
 
+
+    
   // FSM Control
   always_ff @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
-      aes_state <= IDLE;
-      state <= '0;
-      round <= '0;
+      state <= IDLE;
+      state_o <= 128'b0;
     end else begin
-      aes_state <= aes_state_next;
-      unique case (aes_state)
-        IDLE: if (start_i) begin
-          state <= add_round_key(plaintext_i, round_keys[0]);
-          round <= 1;
+      state <= state_next;
+      if (state == BUSY) begin
+        if (is_first_round_i) begin
+            state_o <= add_round_key(state_i, round_keys[round_i]);
+        end else begin
+            if (is_final_round_i) begin
+                state_o <= add_round_key(shift_rows(sub_bytes(state_i)), round_keys[round_i]);
+            end else begin
+                state_o <= add_round_key(mix_columns(shift_rows(sub_bytes(state_i))), round_keys[round_i]);
+            end
         end
-        ROUND: begin
-          if (round < 10) begin
-            state <= add_round_key(mix_columns(shift_rows(sub_bytes(state))), round_keys[round]);
-            round <= round + 1;
-          end else begin
-            state <= add_round_key(shift_rows(sub_bytes(state)), round_keys[10]);
-          end
-        end
-        default: ; // DONE state handled below
-      endcase
+      end
+
     end
   end
 
   always_comb begin
-    aes_state_next = aes_state;
+    state_next = state;
     done_o = 1'b0;
-    unique case (aes_state)
-      IDLE:   aes_state_next = start_i ? ROUND : IDLE;
-      ROUND:  aes_state_next = (round == 10) ? DONE : ROUND;
+    unique case (state)
+      IDLE:   state_next = start_i ? BUSY : IDLE;
+      BUSY:  state_next = DONE;
       DONE: begin
         done_o = 1'b1;
-        aes_state_next = IDLE;
+        state_next = IDLE;
       end
     endcase
   end
-
-  always_ff @(posedge clk_i or negedge rst_ni) begin
-    if (!rst_ni) begin
-      ciphertext_o <= 128'b0;
-    end else if (aes_state == DONE) begin
-      ciphertext_o <= state;
-    end
-  end
-
 
 endmodule

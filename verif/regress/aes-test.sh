@@ -23,15 +23,20 @@ export TRACE_FAST=1
 
 # Move to the simulation directory
 cd verif/sim/
-make -C ../.. clean
-make clean_all
+# make -C ../.. clean
+# make clean_all
 
 # Run AES test
 # python3 cva6.py --asm_tests /home/laura/cva6/verif/tests/custom/aes/aes.S --iss_yaml cva6.yaml --target cv64a6_imafdc_sv39 --iss=$DV_SIMULATORS --gcc_opts="$CC_OPTS -T ../tests/custom/common/test.ld" $DV_OPTS
 
 
-# TEST - aes_load_keyh
-python3 cva6.py --asm_tests /home/laura/cva6/verif/tests/custom/aes/aes_load_test.S --iss_yaml cva6.yaml --target cv64a6_imafdc_sv39 --iss=$DV_SIMULATORS --gcc_opts="$CC_OPTS -T ../tests/custom/common/test.ld" $DV_OPTS
+# TEST
+# python3 cva6.py --asm_tests /home/laura/cva6/verif/tests/custom/aes/aes_nist.S --iss_yaml cva6.yaml --target cv64a6_imafdc_sv39 --iss=$DV_SIMULATORS --gcc_opts="$CC_OPTS -T ../tests/custom/common/test.ld" $DV_OPTS
+# python3 cva6.py --asm_tests /home/laura/cva6/verif/tests/custom/aes/aes_zero.S --iss_yaml cva6.yaml --target cv64a6_imafdc_sv39 --iss=$DV_SIMULATORS --gcc_opts="$CC_OPTS -T ../tests/custom/common/test.ld" $DV_OPTS
+# python3 cva6.py --asm_tests /home/laura/cva6/verif/tests/custom/aes/aes_data_test.S --iss_yaml cva6.yaml --target cv64a6_imafdc_sv39 --iss=$DV_SIMULATORS --gcc_opts="$CC_OPTS -T ../tests/custom/common/test.ld" $DV_OPTS
+# python3 cva6.py --asm_tests /home/laura/cva6/verif/tests/custom/aes/aes_repeat.S --iss_yaml cva6.yaml --target cv64a6_imafdc_sv39 --iss=$DV_SIMULATORS --gcc_opts="$CC_OPTS -T ../tests/custom/common/test.ld" $DV_OPTS
+python3 cva6.py --asm_tests /home/laura/cva6/verif/tests/custom/aes/aes_round_test.S --iss_yaml cva6.yaml --target cv64a6_imafdc_sv39 --iss=$DV_SIMULATORS --gcc_opts="$CC_OPTS -T ../tests/custom/common/test.ld" $DV_OPTS
+
 
 
 # Move back

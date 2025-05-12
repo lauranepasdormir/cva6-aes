@@ -78,7 +78,7 @@ module ex_stage
     input logic csr_commit_i,
     // MULT instruction is valid - ISSUE_STAGE
     input logic [SUPERSCALAR:0] mult_valid_i,
-    // MULT instruction is valid - ISSUE_STAGE
+    // AES instruction is valid - ISSUE_STAGE
     input logic [SUPERSCALAR:0] aes_valid_i,
     // LSU is ready - ISSUE_STAGE
     output logic lsu_ready_o,
@@ -657,7 +657,7 @@ module ex_stage
           // if the current instruction in EX_STAGE is a sfence.vma, in the next cycle no writes will happen
         end else if ((~current_instruction_is_sfence_vma) && (~((fu_data_i[0].operation == SFENCE_VMA) && |csr_valid_i))) begin
           vaddr_to_be_flushed <= rs1_forwarding_i;
-          asid_to_be_flushed  <= rs2_forwarding_i[CVA6Cfg.ASID_WIDTH-1:0];
+          asid_to_be_flushed  <= rs2_forwarding_i[0][CVA6Cfg.ASID_WIDTH-1:0];
         end
       end
     end
