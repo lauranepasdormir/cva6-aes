@@ -22,8 +22,10 @@ logic [127:0] cipher_reg;
 
 logic start_enc;
 logic done_enc;
+logic [127:0] full_ciphertext;
 logic start_round;
 logic done_round;
+logic [127:0] round_ciphertext;
 logic busy;
 
 logic [3:0] round_counter;
@@ -39,7 +41,7 @@ aes_enc #(
     .key_i      (key_reg),
     .plaintext_i(data_reg),
     .done_o     (done_enc),
-    .ciphertext_o(cipher_reg)
+    .ciphertext_o(full_ciphertext)
 );
 
 aes_round #(
@@ -55,7 +57,7 @@ aes_round #(
     .round_i(round_counter),
     .state_i(current_state),
     .done_o     (done_round),
-    .state_o(cipher_reg)
+    .state_o(round_ciphertext)
 );
 
 always_ff @(posedge clk_i) begin
@@ -80,7 +82,7 @@ assign ready_o = ~busy;
         end
       end
       if (done_round) begin
-        current_state <= cipher_reg;
+        current_state <= round_ciphertext;
         round_counter <= round_counter + 1;
       end
       if (round_counter == 11) begin
@@ -98,6 +100,14 @@ always_ff @(posedge clk_i or negedge rst_ni) begin
         data_reg <= 128'b0;
         cipher_reg <= 128'b0;
     end else begin
+
+        if (done_enc) begin
+            cipher_reg <= full_ciphertext;
+        end
+
+        if (done_round) begin
+            cipher_reg <= round_ciphertext;
+        end
 
         if (aes_valid_i && (fu_data_i.operation inside { AES_READ_HIGH, AES_READ_LOW})) begin
             aes_valid_o <= aes_valid_i;
@@ -123,6 +133,8 @@ end
 always_comb begin
     result_o = '0;
     case (fu_data_i.operation)
+        AES_LOAD_KEY: result_o = fu_data_i.operand_a;
+        AES_LOAD_DATA: result_o = fu_data_i.operand_a;
         AES_READ_HIGH: result_o = cipher_reg[127:64];
         AES_READ_LOW:  result_o = cipher_reg[63:0];
         default:       result_o = '0;

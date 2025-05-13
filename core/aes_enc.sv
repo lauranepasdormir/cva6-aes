@@ -213,13 +213,6 @@ module aes_enc
     endcase
   end
 
-  always_ff @(posedge clk_i or negedge rst_ni) begin
-    if (!rst_ni) begin
-      ciphertext_o <= 128'b0;
-    end else if (aes_state == DONE) begin
-      ciphertext_o <= state;
-    end
-  end
-
+  assign ciphertext_o = (aes_state == DONE) ? state : '0;
 
 endmodule

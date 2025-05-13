@@ -14,8 +14,8 @@ main:
     nop;
     nop;
     nop;
-    aes_read_high s0, x0, x0;
-    aes_read_low s1, x0, x0; 
+    aes_read_high a1, x0, x0;
+    aes_read_low a2, x0, x0; 
 
     aes_round x0, x0, x0;
     nop;
@@ -23,8 +23,8 @@ main:
     nop;
     nop;
     nop;
-    aes_read_high s0, x0, x0;
-    aes_read_low s1, x0, x0; 
+    aes_read_high a1, x0, x0;
+    aes_read_low a2, x0, x0; 
 
     aes_round x0, x0, x0;
     nop;
@@ -32,8 +32,8 @@ main:
     nop;
     nop;
     nop;
-    aes_read_high s0, x0, x0;
-    aes_read_low s1, x0, x0; 
+    aes_read_high a1, x0, x0;
+    aes_read_low a2, x0, x0; 
 
     aes_round x0, x0, x0;
     nop;
@@ -41,8 +41,8 @@ main:
     nop;
     nop;
     nop;
-    aes_read_high s0, x0, x0;
-    aes_read_low s1, x0, x0; 
+    aes_read_high a1, x0, x0;
+    aes_read_low a2, x0, x0; 
 
     aes_round x0, x0, x0;
     nop;
@@ -50,8 +50,8 @@ main:
     nop;
     nop;
     nop;
-    aes_read_high s0, x0, x0;
-    aes_read_low s1, x0, x0; 
+    aes_read_high a1, x0, x0;
+    aes_read_low a2, x0, x0; 
 
     aes_round x0, x0, x0;
     nop;
@@ -59,8 +59,8 @@ main:
     nop;
     nop;
     nop;
-    aes_read_high s0, x0, x0;
-    aes_read_low s1, x0, x0; 
+    aes_read_high a1, x0, x0;
+    aes_read_low a2, x0, x0; 
 
     aes_round x0, x0, x0;
     nop;
@@ -68,8 +68,8 @@ main:
     nop;
     nop;
     nop;
-    aes_read_high s0, x0, x0;
-    aes_read_low s1, x0, x0; 
+    aes_read_high a1, x0, x0;
+    aes_read_low a2, x0, x0; 
 
     aes_round x0, x0, x0;
     nop;
@@ -77,8 +77,8 @@ main:
     nop;
     nop;
     nop;
-    aes_read_high s0, x0, x0;
-    aes_read_low s1, x0, x0; 
+    aes_read_high a1, x0, x0;
+    aes_read_low a2, x0, x0; 
 
     aes_round x0, x0, x0;
     nop;
@@ -86,8 +86,8 @@ main:
     nop;
     nop;
     nop;
-    aes_read_high s0, x0, x0;
-    aes_read_low s1, x0, x0; 
+    aes_read_high a1, x0, x0;
+    aes_read_low a2, x0, x0; 
 
     aes_round x0, x0, x0;
     nop;
@@ -95,8 +95,8 @@ main:
     nop;
     nop;
     nop;
-    aes_read_high s0, x0, x0;
-    aes_read_low s1, x0, x0; 
+    aes_read_high a1, x0, x0;
+    aes_read_low a2, x0, x0; 
 
     aes_round x0, x0, x0;
     nop;
@@ -104,8 +104,8 @@ main:
     nop;
     nop;
     nop;
-    aes_read_high s0, x0, x0;
-    aes_read_low s1, x0, x0; 
+    aes_read_high a1, x0, x0;
+    aes_read_low a2, x0, x0; 
     
     li a0, 0x0;
     jal exit;     
