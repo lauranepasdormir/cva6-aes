@@ -14,6 +14,8 @@ main:
     nop;
     nop;
     nop;
+
+    aes_round a5, x0, x0;
     
 
     aes_read_high s0, x0, x0;

@@ -9,16 +9,29 @@ module aes_enc
     input  logic start_i,
     input  logic [127:0] key_i,
     input  logic [127:0] plaintext_i,
+    input  logic key_valid,
     output logic done_o,
-    output logic [127:0] ciphertext_o
+    output logic [127:0] ciphertext_o,
+    output logic [127:0] round_key
 );
 
   logic [127:0] state;
   logic [127:0] round_keys[0:10];
   logic [3:0] round;
 
-  typedef enum logic [1:0] { IDLE, ROUND, DONE } aes_state_e;
-  aes_state_e aes_state, aes_state_next;
+ 
+
+ typedef enum logic [2:0] {
+   IDLE,
+   SUB_BYTES,
+   SHIFT_ROWS,
+   MIX_COLUMNS,
+   ADD_ROUND_KEY,
+   DONE
+ } aes_state_e;
+
+
+  aes_state_e aes_state;
 
   // S-Box lookup table
   function automatic logic [7:0] sbox(input logic [7:0] input_byte);
@@ -101,28 +114,29 @@ module aes_enc
   endfunction
 
   // Key Expansion
-  always_comb begin
-    logic [31:0] w [0:43];
-    w[0] = key_i[127:96];
-    w[1] = key_i[95:64];
-    w[2] = key_i[63:32];
-    w[3] = key_i[31:0];
+  // always_comb begin
+  //   logic [31:0] w [0:43];
+  //   w[0] = key_i[127:96];
+  //   w[1] = key_i[95:64];
+  //   w[2] = key_i[63:32];
+  //   w[3] = key_i[31:0];
 
-    for (int i = 4; i < 44; i++) begin
-      logic [31:0] temp = w[i-1];
-      if (i % 4 == 0) begin
-        temp = {temp[23:0], temp[31:24]};  // RotWord
-        temp = {sbox(temp[31:24]), sbox(temp[23:16]), 
-                sbox(temp[15:8]), sbox(temp[7:0])};
-        temp = temp ^ {rcon((i/4)-1), 24'h0};
-      end
-      w[i] = w[i-4] ^ temp;
-    end
+  //   for (int i = 4; i < 44; i++) begin
+  //     logic [31:0] temp = w[i-1];
+  //     if (i % 4 == 0) begin
+  //       temp = {temp[23:0], temp[31:24]};  // RotWord
+  //       temp = {sbox(temp[31:24]), sbox(temp[23:16]), 
+  //               sbox(temp[15:8]), sbox(temp[7:0])};
+  //       temp = temp ^ {rcon((i/4)-1), 24'h0};
+  //     end
+  //     w[i] = w[i-4] ^ temp;
+  //   end
 
-    for (int i = 0; i <= 10; i++) begin
-      round_keys[i] = {w[4*i], w[4*i+1], w[4*i+2], w[4*i+3]};
-    end
-  end
+  //   for (int i = 0; i <= 10; i++) begin
+  //     round_keys[i] = {w[4*i], w[4*i+1], w[4*i+2], w[4*i+3]};
+  //   end
+  // end
+
 
   // AES Transformations
   function automatic logic [127:0] sub_bytes(input logic [127:0] state_in);
@@ -174,45 +188,106 @@ module aes_enc
     return state_in ^ round_key;
   endfunction
 
+  always_ff @(posedge clk_i or negedge rst_ni) begin
+    if (!rst_ni) begin
+      for (int i = 0; i <= 10; i++) begin
+        round_keys[i] <= '0;
+      end
+    end else if (key_valid) begin
+      // 展开 key expansion 写法
+      logic [31:0] w[0:43];
+      logic [31:0] temp;
+      w[0] = key_i[127:96];
+      w[1] = key_i[95:64];
+      w[2] = key_i[63:32];
+      w[3] = key_i[31:0];
+
+      for (int i = 4; i < 44; i++) begin
+        temp = w[i-1];
+        if (i % 4 == 0) begin
+          temp = {temp[23:0], temp[31:24]};
+          temp = {sbox(temp[31:24]), sbox(temp[23:16]),
+                  sbox(temp[15:8]), sbox(temp[7:0])};
+          temp = temp ^ {rcon((i/4)-1), 24'h0};
+        end
+        w[i] = w[i-4] ^ temp;
+      end
+
+      for (int i = 0; i <= 10; i++) begin
+        round_keys[i] <= {w[4*i], w[4*i+1], w[4*i+2], w[4*i+3]};
+      end
+    end
+  end
+
   // FSM Control
   always_ff @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
       aes_state <= IDLE;
       state <= '0;
       round <= '0;
+      done_o <= 1'b0;
+      ciphertext_o <= '0;
+      round_key <= '0;
     end else begin
-      aes_state <= aes_state_next;
+      // aes_state <= aes_state_next;
       unique case (aes_state)
         IDLE: if (start_i) begin
+          done_o = 1'b0;
           state <= add_round_key(plaintext_i, round_keys[0]);
           round <= 1;
+          aes_state <= SUB_BYTES;
         end
-        ROUND: begin
-          if (round < 10) begin
-            state <= add_round_key(mix_columns(shift_rows(sub_bytes(state))), round_keys[round]);
-            round <= round + 1;
-          end else begin
-            state <= add_round_key(shift_rows(sub_bytes(state)), round_keys[10]);
+        SUB_BYTES:
+          begin
+            state <= sub_bytes(state); // SubBytes
+            aes_state <= SHIFT_ROWS;
           end
-        end
-        default: ; // DONE state handled below
+        SHIFT_ROWS:
+          begin
+            state <= shift_rows(state); // ShiftRows
+            aes_state <= MIX_COLUMNS;
+          end
+        MIX_COLUMNS:
+          begin
+            if (round < 10)
+              state <= mix_columns(state); // MixColumns（仅前9轮）
+            aes_state <= ADD_ROUND_KEY;
+          end
+        ADD_ROUND_KEY:
+          begin
+            state <= state ^ round_keys[round]; // AddRoundKey
+            round_key <= round_keys[round];
+            if (round == 10)
+              aes_state <= DONE;
+            else begin
+              round <= round + 1;
+              aes_state <= SUB_BYTES; // 下一轮
+            end
+          end
+        DONE:
+          begin
+            done_o <= 1'b1;
+            aes_state <= IDLE; // 完成
+            ciphertext_o <= state;
+          end
       endcase
+
     end
   end
 
-  always_comb begin
-    aes_state_next = aes_state;
-    done_o = 1'b0;
-    unique case (aes_state)
-      IDLE:   aes_state_next = start_i ? ROUND : IDLE;
-      ROUND:  aes_state_next = (round == 10) ? DONE : ROUND;
-      DONE: begin
-        done_o = 1'b1;
-        aes_state_next = IDLE;
-      end
-    endcase
-  end
+  // always_comb begin
+  //   // aes_state_next = aes_state;
+  //   done_o = 1'b0;
+  //   unique case (aes_state)
+  //     // IDLE:   aes_state_next = start_i ? ROUND : IDLE;
+  //     // ROUND:  aes_state_next = (round == 10) ? DONE : ROUND;
+  //     DONE: begin
+  //       done_o = 1'b1;
+  //       // aes_state_next = IDLE;
+  //     end
+  //   endcase
+  // end
 
-  assign ciphertext_o = (aes_state == DONE) ? state : '0;
+  // assign ciphertext_o = (aes_state == DONE) ? state : plaintext_i;
 
 endmodule

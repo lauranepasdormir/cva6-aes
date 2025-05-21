@@ -202,6 +202,13 @@ module issue_read_operands
       fus_busy[0].csr = 1'b1;
     end
 
+
+    if (aes_valid_q) begin
+      fus_busy[0].alu = 1'b1;
+      fus_busy[0].ctrl_flow = 1'b1;
+      fus_busy[0].csr = 1'b1;
+    end
+
     if (CVA6Cfg.FpPresent && !fpu_ready_i) begin
       fus_busy[0].fpu = 1'b1;
       fus_busy[0].fpu_vec = 1'b1;
